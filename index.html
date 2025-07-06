@@ -9,22 +9,7 @@
   <meta name="author" content="TheFinvia" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.thefinvia.com/" />
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "TheFinvia TDS Calculator",
-    "url": "https://www.thefinvia.com",
-    "description": "Calculate your TDS under old and new tax regimes for FY 2025-26. Free, fast and accurate tool for Indian taxpayers.",
-    "inLanguage": "en-IN",
-    "publisher": {
-      "@type": "Organization",
-      "name": "TheFinvia"
-    }
-  }
-  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8491779345370746" crossorigin="anonymous"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -63,6 +48,50 @@
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      padding: 15px;
+    }
+    legend {
+      font-weight: bold;
+      padding: 0 10px;
+      color: #007BFF;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select {
+      padding: 10px;
+      width: 100%;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      background-color: #e6f7ff;
+      border-left: 5px solid #1890ff;
+      padding: 15px;
+      font-size: 1.1em;
+      border-radius: 6px;
+    }
     footer {
       background-color: #003366;
       color: white;
@@ -78,23 +107,9 @@
     footer a:hover {
       text-decoration: underline;
     }
-    .ad-top {
-      margin: 20px auto;
-      text-align: center;
-    }
-    .ad-bottom {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #fff;
-      z-index: 999;
-      text-align: center;
-      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
-    }
-    @media (max-width: 768px) {
-      .ad-bottom {
-        display: block;
+    @media (max-width: 600px) {
+      input, select, button {
+        font-size: 16px;
       }
     }
   </style>
@@ -110,19 +125,45 @@
     </nav>
   </header>
 
-  <div class="ad-top">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8491779345370746" data-ad-slot="3333333333" data-ad-format="auto" data-full-width-responsive="true"></ins>
-  </div>
-
   <main class="container">
-    <!-- Embedded Calculator Start -->
-    <iframe src="index.html" style="width: 100%; height: 1000px; border: none;"></iframe>
-    <!-- Embedded Calculator End -->
-  </main>
+    <fieldset>
+      <legend><i class="fas fa-user"></i> Personal Information</legend>
+      <label for="income">Annual Income (₹)</label>
+      <input type="number" id="income" placeholder="e.g., 900000" required>
+      <label for="age">Age Group</label>
+      <select id="age">
+        <option value="normal">Below 60</option>
+        <option value="senior">60 - 80</option>
+        <option value="super_senior">Above 80</option>
+      </select>
+    </fieldset>
 
-  <div class="ad-bottom">
-    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-8491779345370746" data-ad-slot="4444444444" data-ad-format="auto" data-full-width-responsive="true"></ins>
-  </div>
+    <fieldset>
+      <legend><i class="fas fa-minus-circle"></i> Deductions</legend>
+      <label for="sec80c">80C Deductions (LIC, PPF, etc.) (₹)</label>
+      <input type="number" id="sec80c" placeholder="e.g., 150000">
+      <label for="hra">HRA / Rent Paid (₹)</label>
+      <input type="number" id="hra" placeholder="e.g., 80000">
+      <label for="other">Other Deductions (80D, NPS, etc.) (₹)</label>
+      <input type="number" id="other" placeholder="e.g., 50000">
+      <label for="pf">PF Contribution (₹)</label>
+      <input type="number" id="pf" placeholder="e.g., 21600">
+    </fieldset>
+
+    <fieldset>
+      <legend><i class="fas fa-gavel"></i> Tax Settings</legend>
+      <label for="regime">Tax Regime</label>
+      <select id="regime">
+        <option value="old">Old Regime</option>
+        <option value="new">New Regime</option>
+      </select>
+    </fieldset>
+
+    <button onclick="calculateTDS()"><i class="fas fa-percent"></i> Calculate TDS</button>
+    <button onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+
+    <div id="result"></div>
+  </main>
 
   <footer>
     <p>
@@ -140,17 +181,61 @@
   </footer>
 
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      const ads = document.querySelectorAll('.adsbygoogle');
-      ads.forEach(ad => (adsbygoogle = window.adsbygoogle || []).push({}));
+    function calculateTDS() {
+      const income = parseFloat(document.getElementById("income").value) || 0;
+      const age = document.getElementById("age").value;
+      const sec80c = Math.min(parseFloat(document.getElementById("sec80c").value) || 0, 150000);
+      const hra = parseFloat(document.getElementById("hra").value) || 0;
+      const other = parseFloat(document.getElementById("other").value) || 0;
+      const pf = parseFloat(document.getElementById("pf").value) || 0;
+      const regime = document.getElementById("regime").value;
 
-      setTimeout(() => {
-        const bottomAd = document.querySelector('.ad-bottom');
-        if (bottomAd) {
-          bottomAd.style.display = 'block';
+      const stdDeduction = regime === "new" ? 75000 : 50000;
+      const totalDeduction = regime === "old" ? (sec80c + hra + other + pf + stdDeduction) : stdDeduction;
+      const taxableIncome = Math.max(0, income - totalDeduction);
+      let tax = 0;
+
+      if (regime === "old") {
+        if (age === "super_senior") {
+          if (taxableIncome > 500000) tax += (taxableIncome - 500000) * 0.2;
+        } else if (age === "senior") {
+          if (taxableIncome <= 300000) tax = 0;
+          else if (taxableIncome <= 500000) tax = (taxableIncome - 300000) * 0.05;
+          else if (taxableIncome <= 1000000) tax = 10000 + (taxableIncome - 500000) * 0.2;
+          else tax = 110000 + (taxableIncome - 1000000) * 0.3;
+        } else {
+          if (taxableIncome <= 250000) tax = 0;
+          else if (taxableIncome <= 500000) tax = (taxableIncome - 250000) * 0.05;
+          else if (taxableIncome <= 1000000) tax = 12500 + (taxableIncome - 500000) * 0.2;
+          else tax = 112500 + (taxableIncome - 1000000) * 0.3;
         }
-      }, 1000);
-    });
+        if (taxableIncome <= 500000) tax = 0;
+      } else {
+        const slabs = [300000, 600000, 900000, 1200000, 1500000];
+        const rates = [0, 0.05, 0.1, 0.15, 0.2, 0.3];
+        let remaining = taxableIncome, last = 0;
+        for (let i = 0; i < slabs.length; i++) {
+          const slab = slabs[i] - last;
+          const taxed = Math.min(remaining, slab);
+          tax += taxed * rates[i];
+          remaining -= taxed;
+          last = slabs[i];
+        }
+        if (remaining > 0) tax += remaining * rates[5];
+        if (taxableIncome <= 700000) tax = 0;
+      }
+
+      const monthlyTDS = (tax / 12).toFixed(2);
+      const quarterlyTDS = (tax / 4).toFixed(2);
+      const takeHomeMonthly = ((income - tax) / 12).toFixed(2);
+
+      document.getElementById("result").innerHTML = `
+        <strong>Annual TDS:</strong> ₹${tax.toFixed(2)}<br>
+        <strong>Monthly TDS:</strong> ₹${monthlyTDS}<br>
+        <strong>Quarterly TDS:</strong> ₹${quarterlyTDS}<br>
+        <strong>Monthly Take-Home (Post TDS):</strong> ₹${takeHomeMonthly}
+      `;
+    }
   </script>
 </body>
 </html>
