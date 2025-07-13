@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://thefinvia.com/sitemap.xml
+Sitemap: https://www.thefinvia.com/sitemap.xml
